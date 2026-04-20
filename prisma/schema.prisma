@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  LINKEDIN
+  APPLE
+}
+
+model User {
+  id               String           @id @default(uuid())
+  email            String           @unique
+  passwordHash     String?
+  fullName         String?
+  avatarUrl        String?
+  authAccounts     AuthAccount[]
+  createdJobs      Job[]
+  jobApplications  JobApplication[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model AuthAccount {
+  id                String       @id @default(uuid())
+  provider          AuthProvider
+  providerAccountId String
+  email             String?
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Job {
+  id            String           @id @default(uuid())
+  title         String
+  description   String
+  salary        Decimal          @db.Decimal(10, 2)
+  createdById   String
+  createdBy     User             @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  applications  JobApplication[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([createdById])
+}
+
+model JobApplication {
+  id           String   @id @default(uuid())
+  jobId        String
+  applicantId  String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  applicant    User     @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([jobId, applicantId])
+  @@index([applicantId])
+}
