@@ -9,6 +9,19 @@ import {
   login,
   register
 } from '../services/auth.service.js';
+import { env } from '../config/env.js';
+
+const buildAuthSuccessRedirectUrl = (token) => {
+  if (!env.frontendUrl) {
+    const error = new Error('FRONTEND_URL environment variable is missing.');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const redirectUrl = new URL('/auth-success.html', env.frontendUrl);
+  redirectUrl.searchParams.set('token', token);
+  return redirectUrl.toString();
+};
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -49,7 +62,7 @@ export const getGoogleAuthorizationUrl = async (_req, res, next) => {
 export const handleGoogleCallback = async (req, res, next) => {
   try {
     const result = await handleGoogleCallbackCode(req.query.code);
-    res.status(200).json(result);
+    res.redirect(302, buildAuthSuccessRedirectUrl(result.token));
   } catch (error) {
     next(error);
   }
@@ -76,7 +89,7 @@ export const getLinkedInAuthorizationUrl = async (_req, res, next) => {
 export const handleLinkedInCallback = async (req, res, next) => {
   try {
     const result = await handleLinkedInCallbackCode(req.query.code);
-    res.status(200).json(result);
+    res.redirect(302, buildAuthSuccessRedirectUrl(result.token));
   } catch (error) {
     next(error);
   }

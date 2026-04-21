@@ -46,6 +46,7 @@ Create a `.env` file in the project root.
 ```env
 PORT=5000
 DATABASE_URL="postgresql://postgres:password@localhost:5432/versyde?schema=public"
+FRONTEND_URL="https://verysde-frontend.vercel.app"
 JWT_SECRET="replace-with-a-strong-secret"
 JWT_EXPIRES_IN="1d"
 GOOGLE_CLIENT_ID="your-google-client-id"
@@ -143,14 +144,26 @@ Create a Google OAuth client in Google Cloud Console with:
 http://localhost:5000/api/auth/google/callback
 ```
 
+For production on Render, use the Render backend callback URL instead:
+
+```txt
+https://YOUR-RENDER-BACKEND.onrender.com/api/auth/google/callback
+```
+
+Set `FRONTEND_URL` to the deployed frontend origin:
+
+```txt
+https://verysde-frontend.vercel.app
+```
+
 For testing mode in Google Auth Platform:
 
 - User type: `External`
 - Add your Google account under `Audience` as a test user
 
-## Testing Google OAuth Without A Frontend
+## Testing Google OAuth In Browser
 
-This backend supports browser-based testing without a frontend app.
+This backend supports browser-based OAuth testing and redirects successful sign-ins to the configured frontend app.
 
 1. Start the server:
 
@@ -172,20 +185,10 @@ http://localhost:5000/api/auth/google/start
 http://localhost:5000/api/auth/google/callback
 ```
 
-5. The backend responds with JSON like:
+5. The backend redirects the browser to the frontend success page:
 
-```json
-{
-  "message": "Google authentication successful.",
-  "token": "your-jwt-token",
-  "user": {
-    "id": "user-id",
-    "email": "user@example.com",
-    "fullName": "Example User",
-    "avatarUrl": "https://...",
-    "createdAt": "2026-04-20T19:46:47.755Z"
-  }
-}
+```txt
+https://verysde-frontend.vercel.app/auth-success.html?token=your-jwt-token
 ```
 
 ## LinkedIn OAuth Setup
@@ -199,17 +202,24 @@ Create a LinkedIn app in the LinkedIn Developer Portal and configure:
 http://localhost:5000/api/auth/linkedin/callback
 ```
 
+For production on Render, use the Render backend callback URL instead:
+
+```txt
+https://YOUR-RENDER-BACKEND.onrender.com/api/auth/linkedin/callback
+```
+
 Then set the LinkedIn values in `.env`:
 
 ```env
 LINKEDIN_CLIENT_ID="your-linkedin-client-id"
 LINKEDIN_CLIENT_SECRET="your-linkedin-client-secret"
 LINKEDIN_REDIRECT_URI="http://localhost:5000/api/auth/linkedin/callback"
+FRONTEND_URL="https://verysde-frontend.vercel.app"
 ```
 
-## Testing LinkedIn OAuth Without A Frontend
+## Testing LinkedIn OAuth In Browser
 
-This backend also supports browser-based LinkedIn testing without a frontend app.
+This backend also supports browser-based LinkedIn testing and redirects successful sign-ins to the configured frontend app.
 
 1. Start the server:
 
@@ -231,20 +241,10 @@ http://localhost:5000/api/auth/linkedin/start
 http://localhost:5000/api/auth/linkedin/callback
 ```
 
-5. The backend responds with JSON like:
+5. The backend redirects the browser to the frontend success page:
 
-```json
-{
-  "message": "LinkedIn authentication successful.",
-  "token": "your-jwt-token",
-  "user": {
-    "id": "user-id",
-    "email": "user@example.com",
-    "fullName": "Example User",
-    "avatarUrl": "https://...",
-    "createdAt": "2026-04-20T19:46:47.755Z"
-  }
-}
+```txt
+https://verysde-frontend.vercel.app/auth-success.html?token=your-jwt-token
 ```
 
 ## Apple OAuth Status
@@ -290,6 +290,7 @@ Expected result:
 ## Notes
 
 - Restart the server after changing `.env`
+- `FRONTEND_URL` must be set so OAuth callbacks can redirect to the frontend success page
 - Google redirect URIs must match exactly between `.env` and Google Cloud Console
 - LinkedIn redirect URIs must match exactly between `.env` and the LinkedIn app settings
 - Authorization codes are short-lived and single-use
